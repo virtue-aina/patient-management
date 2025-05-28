@@ -41,3 +41,10 @@ This will start:
 # Stop the containers
 docker-compose down
 ```
+
+## Development Resources
+
+- **IMPROVEMENTS.md**: Contains a comprehensive checklist of potential improvements for the codebase
+- **SUMMARY.md**: Provides a summary of implemented changes and TODOs added to the code
+
+These documents should be consulted when working on the codebase to understand the current state and future direction of the project.
