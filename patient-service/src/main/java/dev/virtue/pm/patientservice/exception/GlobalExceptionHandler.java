@@ -1,64 +1,83 @@
 package dev.virtue.pm.patientservice.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-//import java.util.logging.Logger;
+import java.util.NoSuchElementException;
 
-
+/**
+ * Global exception handler for the patient service.
+ * Handles various exceptions and returns appropriate HTTP responses.
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
+    /**
+     * Handles validation exceptions
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>>  handleValidationException(MethodArgumentNotValidException ex){
-
-        Map<String,String> errors = new HashMap<>();
-
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(
-                error ->errors.put(
-                        error.getField(),
-                        error.getDefaultMessage()
-                )
-                );
-
-        return ResponseEntity.badRequest().body(errors);
+    public ResponseEntity<Object> handleValidationExceptions(
+            MethodArgumentNotValidException ex, WebRequest request) {
+        
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                errors.toString(),
+                request.getDescription(false)
+        );
+        
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<Map<String,String>> handleEmailAlreadyExistsException(
-            EmailAlreadyExistsException ex){
-
-        log.warn("Email Address Already Exists {}", ex.getMessage());
-
-        Map<String,String> errors = new HashMap<>();
-        errors.put("message","Email address already in use by another patient");
-
-        return  ResponseEntity.badRequest().body(errors);
-
+    /**
+     * Handles resource not found exceptions
+     */
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Object> handleResourceNotFoundException(
+            NoSuchElementException ex, WebRequest request) {
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Resource Not Found",
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+        
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(PatientNotFoundException.class)
-    public ResponseEntity<Map<String,String>> handlePatientNotFoundException(
-            PatientNotFoundException ex){
-
-        log.warn("Patient not found {}", ex.getMessage());
-
-        Map<String,String> errors = new HashMap<>();
-        errors.put("message","Patient not found");
-
-        return  ResponseEntity.badRequest().body(errors);
-
+    /**
+     * Handles all other exceptions
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleAllExceptions(
+            Exception ex, WebRequest request) {
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+        
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-
 }
