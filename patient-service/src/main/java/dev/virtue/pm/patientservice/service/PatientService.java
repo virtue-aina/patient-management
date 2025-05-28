@@ -7,6 +7,9 @@ import dev.virtue.pm.patientservice.exception.PatientNotFoundException;
 import dev.virtue.pm.patientservice.mapper.PatientMapper;
 import dev.virtue.pm.patientservice.model.Patient;
 import dev.virtue.pm.patientservice.repository.PatientRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,14 +24,26 @@ public class PatientService {
         this.patientRepository = patientRepository;
     }
 
-    public List<PatientResponseDTO> getPatients(){
+    public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
-        List<PatientResponseDTO> patientResponseDTOs =
-                patients.stream()
-                        .map(PatientMapper::toDTO)
-                        .toList();
+        return patients.stream()
+                .map(PatientMapper::toDTO)
+                .toList();
+    }
 
-        return patientResponseDTOs;
+    /**
+     * Get patients with pagination support
+     * @param page Page number (0-based)
+     * @param size Number of items per page
+     * @return List of patient DTOs for the requested page
+     */
+    public List<PatientResponseDTO> getPatients(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Patient> patientPage = patientRepository.findAll(pageable);
+
+        return patientPage.getContent().stream()
+                .map(PatientMapper::toDTO)
+                .toList();
     }
    public  PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
        Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
@@ -59,6 +74,24 @@ public class PatientService {
 
     public  void deletePatient(UUID id) {
        patientRepository.deleteById(id);
+    }
+
+    /**
+     * Search for patients by a search term
+     * Searches in name, email, and address fields
+     * 
+     * @param searchTerm The term to search for
+     * @param page Page number (0-based)
+     * @param size Number of items per page
+     * @return List of patient DTOs matching the search criteria
+     */
+    public List<PatientResponseDTO> searchPatients(String searchTerm, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Patient> patientPage = patientRepository.searchPatients(searchTerm, pageable);
+
+        return patientPage.getContent().stream()
+                .map(PatientMapper::toDTO)
+                .toList();
     }
 
 

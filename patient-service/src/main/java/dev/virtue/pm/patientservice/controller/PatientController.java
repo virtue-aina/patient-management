@@ -17,6 +17,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/patients")
 @Tag(name ="Patient",description = "API for managing Patients")
+// TODO: Add global exception handler for better error handling
+// TODO: Consider implementing request validation middleware
 public class PatientController {
     private final PatientService patientService;
 
@@ -26,9 +28,12 @@ public class PatientController {
 
     @GetMapping
     @Operation(summary = "Get all Patients")
-    public ResponseEntity<List<PatientResponseDTO>> getAllPatients(){
-     List<PatientResponseDTO> patients = patientService.getPatients();
-            return ResponseEntity.ok().body(patients);
+    // TODO: Add filtering and sorting capabilities
+    public ResponseEntity<List<PatientResponseDTO>> getAllPatients(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<PatientResponseDTO> patients = patientService.getPatients(page, size);
+        return ResponseEntity.ok().body(patients);
     }
     @PostMapping
     @Operation(summary = "Add new Patient")
@@ -53,4 +58,13 @@ public class PatientController {
       return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/search")
+    @Operation(summary = "Search for Patients")
+    public ResponseEntity<List<PatientResponseDTO>> searchPatients(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<PatientResponseDTO> patients = patientService.searchPatients(query, page, size);
+        return ResponseEntity.ok().body(patients);
+    }
 }
