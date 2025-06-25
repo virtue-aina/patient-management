@@ -7,6 +7,7 @@ import dev.virtue.pm.patientservice.exception.PatientNotFoundException;
 import dev.virtue.pm.patientservice.mapper.PatientMapper;
 import dev.virtue.pm.patientservice.model.Patient;
 import dev.virtue.pm.patientservice.repository.PatientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +17,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 public class PatientService {
     private final PatientRepository patientRepository;
-
-    public PatientService(PatientRepository patientRepository) {
-        this.patientRepository = patientRepository;
-    }
 
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
@@ -31,12 +29,6 @@ public class PatientService {
                 .toList();
     }
 
-    /**
-     * Get patients with pagination support
-     * @param page Page number (0-based)
-     * @param size Number of items per page
-     * @return List of patient DTOs for the requested page
-     */
     public List<PatientResponseDTO> getPatients(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Patient> patientPage = patientRepository.findAll(pageable);
@@ -46,12 +38,11 @@ public class PatientService {
                 .toList();
     }
    public  PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
-       Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
-
        if (patientRepository.existsByEmail(patientRequestDTO.getEmail())) {
            throw new EmailAlreadyExistsException("Email address already in use by another patient");
        }
 
+       Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
        return PatientMapper.toDTO(newPatient);
 
    }
@@ -76,15 +67,6 @@ public class PatientService {
        patientRepository.deleteById(id);
     }
 
-    /**
-     * Search for patients by a search term
-     * Searches in name, email, and address fields
-     * 
-     * @param searchTerm The term to search for
-     * @param page Page number (0-based)
-     * @param size Number of items per page
-     * @return List of patient DTOs matching the search criteria
-     */
     public List<PatientResponseDTO> searchPatients(String searchTerm, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Patient> patientPage = patientRepository.searchPatients(searchTerm, pageable);

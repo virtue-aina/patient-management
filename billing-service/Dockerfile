@@ -17,6 +17,6 @@ WORKDIR /app
 COPY --from=builder ./app/target/billing-service-0.0.1-SNAPSHOT.jar ./app.jar
 
 EXPOSE 9001
-EXPOSE 4001
+EXPOSE 8001
 
-ENTRYPOINT ["java", "-Dserver.port=4002", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dserver.port=8001", "-jar", "app.jar"]
