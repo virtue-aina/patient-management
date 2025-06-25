@@ -17,8 +17,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/patients")
 @Tag(name ="Patient",description = "API for managing Patients")
-// TODO: Add global exception handler for better error handling
-// TODO: Consider implementing request validation middleware
 public class PatientController {
     private final PatientService patientService;
 

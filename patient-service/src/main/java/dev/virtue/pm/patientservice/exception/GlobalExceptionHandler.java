@@ -7,16 +7,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-/**
- * Global exception handler for the patient service.
- * Handles various exceptions and returns appropriate HTTP responses.
- */
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
